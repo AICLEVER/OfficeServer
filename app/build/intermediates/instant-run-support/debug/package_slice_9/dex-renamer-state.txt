@@ -1,0 +1,4 @@
+#Mon Jul 09 12:57:17 KST 2018
+base.0=C\:\\GIT\\AndroidProject\\OfficeServer\\app\\build\\intermediates\\transforms\\dexMerger\\debug\\9
+path.0=classes.dex
+renamed.0=classes.dex
