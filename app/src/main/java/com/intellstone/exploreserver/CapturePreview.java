@@ -151,14 +151,21 @@ public class CapturePreview implements SurfaceHolder.Callback, Camera.PreviewCal
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
+    /**--------------------------------------------------------------------------------------------
+     *  비트맵을 전송하는 메서드
+     *-------------------------------------------------------------------------------------------*/
     private void sendBitmapThroughNetwork(Bitmap bitmap) {
 
+        // SendThread 핸들러가 아직 준비되지 않았다면 리턴하는 부분
         if(com.intellstone.officeserver.SendThread.mHandler == null) return;
 
+        // 네트워크 전송 지연이 생기면 이전에 SendThread의 메세지 큐에 넣은 메세지가 아직 남아 있을 수 있다.
+        // 앱의 특성상 모든 데이터를 반드시 보내야 하는 것이 아니기 때문에 기존 메세지를 삭제하고 새로운 메세지를 넣는다.
         if(com.intellstone.officeserver.SendThread.mHandler.hasMessages(com.intellstone.officeserver.SendThread.CMD_SEND_BITMAP)) {
             com.intellstone.officeserver.SendThread.mHandler.removeMessages(com.intellstone.officeserver.SendThread.CMD_SEND_BITMAP);
         }
 
+        // 메세지 객체에 비트맵 객체를 넣어서 SendThread의 메세지 큐에 보낸다.
         Message msg = Message.obtain();
         msg.what = com.intellstone.officeserver.SendThread.CMD_SEND_BITMAP;
         msg.obj  = bitmap;

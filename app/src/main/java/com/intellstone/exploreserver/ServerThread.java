@@ -23,9 +23,10 @@ import java.util.Enumeration;
  * API 완벽하게 지원함
  * 네트웤 프로그램은 서버 / 클라이언트 구조로 작성하는 경우가 많음
  * 서버는 먼저 실행하여 기다리는 프로그램, 클라이언트는 통신을 하고자 접속하는 프로그램.
- * 서버와 클라이언트는 서로 다른 IP 주소를 가지는 시스템에서 실행되며, 해당 시스템 내에서 고유한 포트번호를 가진다.
- * 클라이언트는 서버의 IP 주소와 포트 번호를 미리 아는 상태에서 접속하며, 서버는 클라이언트가 접속하였을 때 비로서
- * 클라이언트의 IP 주소와 포트번호를 인식하여 통신을 시작한다.
+ * 서버와 클라이언트는 서로 다른 IP 주소를 가지는 시스템에서 실행되며, 해당 시스템 내에서 고유한
+ * 포트번호를 가진다.
+ * 클라이언트는 서버의 IP 주소와 포트 번호를 미리 아는 상태에서 접속하며, 서버는 클라이언트가
+ * 접속하였을 때 비로서 클라이언트의 IP 주소와 포트번호를 인식하여 통신을 시작한다.
  **************************************************************************************************/
 @SuppressWarnings("deprecation")
 
@@ -49,7 +50,7 @@ public class ServerThread extends Thread {
      * ------------------------------------------------------------------------------*/
     // 생성자 인자로 컨텍스트와 핸들러 객체를 받아서 내부에 저장해 둠.
     private Context mContext;
-    private static Handler mMainHandler;
+    private static Handler mMainHandler;  //외부에서 ServerThread.mMainHandler 형태로 호출할 수 있도록 static 키워드 추가함
 
     public ServerThread(Context context, Handler mainHandler) {
         mContext     = context;
@@ -81,7 +82,7 @@ public class ServerThread extends Thread {
                  * 2. 클라이언트 접속을 기다린다
                  * 서버소켓에 대해 accept()를 호출하면 클라이언트가 접속할 때까지 대기하다가
                  * 클라이언트가 접속하면 리턴함.
-                 * accept() 가 리턴한 Socket 객체는 Client 와의 데이타 통신에 사용됨
+                 * accept() 가 리턴한 Socket 객체는 Client 와의 데이타 통신에 사용됨.
                  * 접속한 Client 와 data를 주고받을려면 getInputStream(), getOutputStream()을
                  * 각각 호출하여 InputStream과 OutpurStream 객체를 얻는다.
                  *-------------------------------------------------------------------------*/
@@ -102,11 +103,11 @@ public class ServerThread extends Thread {
                     // SendThread 라는 별도의 스레드를 생성하여 클라이언트와 통신하는 부분. (SendThread.java)
                     // OutputStream 객체는 곧바로 네트워크 통신에 사용 할 수 있음.
                     com.intellstone.officeserver.SendThread sendThread = new com.intellstone.officeserver.SendThread(socket.getOutputStream()); //MKHUH 2018-04-11 Echo 서버 기능 추가
-                    com.intellstone.officeserver.RecvThread recvThread = new com.intellstone.officeserver.RecvThread(socket.getInputStream());  //MKHUH 2018-04-11 Echo 서버 기능 추가
+                    //com.intellstone.officeserver.RecvThread recvThread = new com.intellstone.officeserver.RecvThread(socket.getInputStream());  //MKHUH 2018-04-11 Echo 서버 기능 추가
                     sendThread.start();
-                    recvThread.start(); //MKHUH 2018-04-11 Echo 서버 기능 추가
+                    //recvThread.start(); //MKHUH 2018-04-11 Echo 서버 기능 추가
                     sendThread.join();
-                    recvThread.join();  //MKHUH 2018-04-11 Echo 서버 기능 추가
+                    //recvThread.join();  //MKHUH 2018-04-11 Echo 서버 기능 추가
 
                 } catch (Exception e) {
                     //
@@ -143,6 +144,7 @@ public class ServerThread extends Thread {
      *
      * -. 문자열을 액티비티 화면의 텍스트뷰에 출력하고자 메세지 객체에 실어서 보내는 메서드
      * -. 실제 출력은 MainActivity 의 mMainHandler() 에서 출력됨.
+     * -. 외부에서 ServerThread.doPrintLn() 형태로 호출할 수 있도록 static 키워드 추가함
      **--------------------------------------------------------------------------------*/
     public static void doPrintln(String str) {
 
@@ -153,13 +155,13 @@ public class ServerThread extends Thread {
 
     }
 
-    /**---------------------------------------------------------------------------------
+    /**-------------------------------------------------------------------------------------------
      * String getDeviceIP()
      * -. 서버의 IP 주소를 리턴하는 메서드
      * -. IP 주소는 WiFi를 우선으로 하되 WiFi 가 꺼져 있으면 이동 통신망이 제공하는 IP를 리턴하고
      *    둘다 사용이 불가한 상태이면 로턴 통신용 IP 주소인 127.0.0.1을 리턴함.
      * @return String : ip address
-     *--------------------------------------------------------------------------------*/
+     *------------------------------------------------------------------------------------------*/
     private  String getDeviceIP() {
 
         String ipaddr = getWifiIP();
@@ -169,7 +171,7 @@ public class ServerThread extends Thread {
         }
 
         if(ipaddr == null) {
-            ipaddr = "127.0.0.1";
+            ipaddr = "127.0.0.1";  //0x0100007F -
         }
         return ipaddr;
     }
@@ -184,19 +186,24 @@ public class ServerThread extends Thread {
 
         WifiManager wifiManager = (WifiManager) mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
-        // isWifiEnable() 를 호출하여 WiFi 가 비활성화 상태라고 판단되면 null 을 리턴함
+        // isWifiEnable() 를 호출하여 WiFi 가 활성화 상태인지 확인하는 부분
         if(wifiManager != null && wifiManager.isWifiEnabled()) {
+
+            // wifiManager에 접근해서 getConnectionInfo()로 Wifi 정보를 얻고, getIpAddress()를
+            // 호출하여 서버의 IP 주소 (32비트 정수)를 얻음.
             int ip = wifiManager.getConnectionInfo().getIpAddress();
 
             // Formatter 클래스의 formatIpAddress() 를 사용하여 이식성 문제없이 IP 주소를 변환하는 부분
             return Formatter.formatIpAddress(ip);
         }
+
+        // isWifiEnable() 를 호출하여 WiFi 가 비활성화 상태라고 판단되면 null 을 리턴함
         return null;
     }
 
     /**---------------------------------------------------------------------------------
      * getMobileIP()
-     * -.
+     * -. WiFi가 꺼져 있으면 이동 통신망이 제공하는 IP를 리턴하는 메서드.
      * @return String : ip address
      *--------------------------------------------------------------------------------*/
     private String getMobileIP() {
@@ -226,13 +233,13 @@ public class ServerThread extends Thread {
         return null;
     }
 
-    /**-----------------------------------------------------------------------------------------
+    /**-------------------------------------------------------------------------------------------
      * IP 주소 (32 비트 정수)를 인자로 받아 "124.0.0.1" 과 같이 문자열로 리턴하는 메서드
      * 엄밀히 말하면, 이 코드는 이식성이 좋지 않다.
      * 이는 현재 안드로이드 기기를 리틀 엔디언 (Little-endian) 시스템으로 가정하기 때문이다.
      * Formatter 클래스의 formatIpAddress() 를 사용하면 이식성 문제없이 IP 주소를 변환할 수 있음.
      * 현재 사용하지 않는 메서드임.
-     *----------------------------------------------------------------------------------------
+     *--------------------------------------------------------------------------------------------
     private String ipv4ToString(int ip) {
         int a = (ip) & 0xFF, b = (ip >> 8) & 0xFF;
         int c = (ip >> 16) & 0xFF, d = (ip >> 24) & 0xFF;

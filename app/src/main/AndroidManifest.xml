@@ -2,7 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.intellstone.officeserver">
 
+    <!-- 카메라 사용 관련 permission -->
     <uses-permission android:name="android.permission.CAMERA" />
+
     <!-- GPS로 얻은 위치 정보를 사진 파일에 넣고 싶다면 ACCESS_FINE_LOCATION permission 이 필요함 -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
